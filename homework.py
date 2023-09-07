@@ -1,6 +1,7 @@
 import logging
 import os
 import time
+from json import JSONDecodeError
 
 import requests
 import telegram
@@ -23,7 +24,7 @@ HOMEWORK_VERDICTS = {
 }
 
 
-def check_tokens():
+def check_tokens() -> None:
     """Проверка доступности переменных окружения."""
     tokens_ids = {
         'PRACTICUM_TOKEN': PRACTICUM_TOKEN,
@@ -42,7 +43,7 @@ def check_tokens():
     logging.debug('Обязательные переменные окружения доступны')
 
 
-def send_message(bot, message):
+def send_message(bot: telegram.bot.Bot, message: str) -> None:
     """Отправка сообщения в Telegram чат."""
     try:
         bot.send_message(TELEGRAM_CHAT_ID, message)
@@ -53,7 +54,7 @@ def send_message(bot, message):
         logging.error(f'Ошибка отправки сообщения Telegram-ботом - {err}')
 
 
-def get_api_answer(timestamp):
+def get_api_answer(timestamp: int) -> dict:
     """Запрос к эндпоинту API-сервиса и получение ответа."""
     try:
         homework_statuses = requests.get(
@@ -68,10 +69,15 @@ def get_api_answer(timestamp):
         raise requests.HTTPError('Не получен ответ от API-сервиса')
 
     logging.info('Получен ответ от API-сервиса')
-    return homework_statuses.json()
+
+    try:
+        decoded_data = homework_statuses.json()
+        return decoded_data
+    except JSONDecodeError:
+        raise Exception('Ошибка декодирования JSON формата')
 
 
-def check_response(response):
+def check_response(response: dict) -> None:
     """Проверка ответа API-сервиса на соответствие требованиям."""
     if response is None:
         raise ValueError('Ответ API-сервиса не содержит данных')
@@ -86,7 +92,7 @@ def check_response(response):
     logging.debug('Данные из ответа API-сервиса соответствуют требованиям')
 
 
-def parse_status(homework):
+def parse_status(homework: dict) -> str:
     """Извлечение из полученных данных статуса домашней работы."""
     homework_name = homework.get('homework_name')
     status = homework.get('status')
@@ -99,7 +105,7 @@ def parse_status(homework):
     return (f'Изменился статус проверки работы "{homework_name}". {verdict}')
 
 
-def main():
+def main() -> None:
     """Основная логика работы бота."""
     logging.info('Программа начала работу')
     check_tokens()

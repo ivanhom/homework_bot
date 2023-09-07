@@ -104,7 +104,7 @@ def main():
     logging.info('Программа начала работу')
     check_tokens()
     bot = telegram.Bot(token=TELEGRAM_TOKEN)
-    timestamp = int(time.time()) - 5000000
+    timestamp = int(time.time())
     previous_message = ''
 
     while True:
@@ -130,6 +130,7 @@ def main():
 
 if __name__ == '__main__':
     logging.basicConfig(
+        encoding='utf-8',
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[logging.StreamHandler()],
         level=logging.DEBUG
